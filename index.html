@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planner: van nieuw stucwerk naar schilderwerk | Cost Guide Nederland</title>
+<meta name="description" content="Gratis planner: zet de oplevering van het stucwerk, de droogtijd en de sauslagen op een rij en zie wanneer de schilder kan beginnen.">
+<link rel="canonical" href="https://schilderkosten.github.io/">
+<style>
+:root{--ink:#1f2a2e;--muted:#5b6a70;--line:#d9e0e2;--accent:#2f6f5e;--bg:#f7f8f6}
+*{box-sizing:border-box}body{margin:0;font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:760px;margin:0 auto;padding:32px 20px 60px}
+h1{font-size:1.7rem;line-height:1.25;margin:0 0 8px}h2{font-size:1.2rem;margin:32px 0 8px}
+p.lead{color:var(--muted);margin-top:0}
+form{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:14px}
+label{display:grid;gap:4px;font-weight:600;font-size:.95rem}
+label span{font-weight:400;color:var(--muted);font-size:.85rem}
+input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;max-width:260px}
+button{font:inherit;background:var(--accent);color:#fff;border:0;border-radius:6px;padding:10px 16px;cursor:pointer;justify-self:start}
+table{width:100%;border-collapse:collapse;background:#fff;margin-top:16px;border:1px solid var(--line)}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.note{font-size:.9rem;color:var(--muted)}
+footer{margin-top:40px;font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>Planner: van nieuw stucwerk naar schilderwerk</h1>
+<p class="lead">Vul de datum in waarop de stukadoor klaar is, de droogtijd die hij of de fabrikant opgeeft en het aantal sauslagen. De planner zet de stappen op een rij, zodat je de schilder op het juiste moment inplant.</p>
+
+<form id="f">
+  <label>Datum oplevering stucwerk
+    <input type="date" id="start" required>
+  </label>
+  <label>Droogtijd volgens stukadoor of fabrikant (dagen)
+    <span>Dit getal verschilt per materiaal, laagdikte, ventilatie en seizoen. Vul het advies in dat je hebt gekregen.</span>
+    <input type="number" id="dry" min="0" step="1" required>
+  </label>
+  <label>Extra marge (dagen)
+    <span>Bijvoorbeeld voor een koude of vochtige periode.</span>
+    <input type="number" id="buffer" min="0" step="1" value="0">
+  </label>
+  <label>Aantal lagen (voorstrijken + sauslagen)
+    <input type="number" id="coats" min="1" step="1" value="3">
+  </label>
+  <label>Wachttijd tussen lagen volgens het product (dagen)
+    <span>Staat op het etiket of productblad; vaak is dit minder dan een dag, vul dan 0 of 1 in.</span>
+    <input type="number" id="between" min="0" step="1" value="1">
+  </label>
+  <label>Oppervlakte (m², optioneel)
+    <span>Handig om mee te sturen naar de schilder.</span>
+    <input type="number" id="m2" min="0" step="0.1">
+  </label>
+  <button type="submit">Maak planning</button>
+</form>
+
+<div id="out"></div>
+
+<h2>Hoe gebruik je deze planning?</h2>
+<p>De planner rekent niet met een vaste droogtijd, omdat die per situatie verschilt. Hij telt alleen de getallen op die jij invult. Laat de schilder vóór de eerste laag altijd zelf beoordelen of het stucwerk droog genoeg is. Is het plafond of de wand nog donkerder op plekken, wacht dan langer.</p>
+<p>Wil je weten wat de klus kost? Algemene prijsinformatie over <a href="https://stukadoor-kosten.nl/">stukadoor kosten</a> staat bij Stukadoor-kosten.nl. Voor de schilderfase lees je <a href="https://schilder-kosten.nl/nieuw-stucwerk-schilderen/">wat het kost om nieuw stucwerk te laten schilderen</a> en waarop je in de offerte let.</p>
+
+<h2>Wat je in de afspraken vastlegt</h2>
+<ul>
+<li>De datum waarop het stucwerk wordt opgeleverd en wie dat controleert.</li>
+<li>De droogtijd die de stukadoor adviseert, op papier of per bericht.</li>
+<li>Het product en het aantal lagen in de schilderofferte.</li>
+<li>Wie kleine reparaties doet als er na het drogen scheurtjes zichtbaar zijn.</li>
+</ul>
+
+<footer>
+<p>Gemaakt door de redactie van Cost Guide Nederland, verbonden aan SkilledContractors, met hulp van AI. Deze planner geeft geen bindend advies; volg altijd de aanwijzingen van de vakman en de fabrikant. Broncode onder MIT-licentie.</p>
+</footer>
+</main>
+<script>
+const f=document.getElementById('f'),out=document.getElementById('out');
+const fmt=d=>d.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+f.addEventListener('submit',e=>{e.preventDefault();
+ const s=new Date(document.getElementById('start').value);
+ if(isNaN(s)){out.textContent='Vul een geldige datum in.';return}
+ const dry=+document.getElementById('dry').value||0,buf=+document.getElementById('buffer').value||0,
+ coats=Math.max(1,+document.getElementById('coats').value||1),btw=+document.getElementById('between').value||0,
+ m2=document.getElementById('m2').value;
+ const rows=[['Stucwerk opgeleverd',s]];
+ let d=add(s,dry);rows.push(['Einde droogtijd (advies)',d]);
+ d=add(d,buf);rows.push(['Controle droogte door schilder',d]);
+ for(let i=1;i<=coats;i++){rows.push([i===1?'Laag 1 (voorstrijken of eerste laag)':'Laag '+i,d]);d=add(d,btw)}
+ let h='<table><thead><tr><th>Stap</th><th>Vroegste datum</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td></tr>').join('')+'</tbody></table>';
+ if(m2)h+='<p class="note">Oppervlakte: '+(+m2).toLocaleString('nl-NL')+' m². Stuur deze planning en het aantal m² mee bij je offerteaanvraag.</p>';
+ h+='<p class="note">Dit zijn vroegste data op basis van jouw invoer. Weekenden en feestdagen zijn niet uitgezonderd.</p>';
+ out.innerHTML=h});
+</script>
+</body>
+</html>
